@@ -21,6 +21,7 @@ namespace DotNetCoreDemo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //enable CORS for request originating from http://example1.com and https://example2.com
             services.AddCors(options =>
             {
                 options.AddPolicy(MyAllowSpecificOrigins,
@@ -30,8 +31,13 @@ namespace DotNetCoreDemo
                                         "https://example2.com");
                 });
             });
+
+            //add services for controllers
             services.AddControllers();
+
+            //db connection string
             var connection = @"Server=localhost;Database=Test;Trusted_Connection=True;ConnectRetryCount=0";
+            //register db context as service using dependency injection
             services.AddDbContext<TestContext>(options => options.UseSqlServer(connection));
         }
 
@@ -40,18 +46,19 @@ namespace DotNetCoreDemo
         {
             if (env.IsDevelopment())
             {
+                //generate HTML error responses
                 app.UseDeveloperExceptionPage();
-
             }
 
-            app.UseHttpsRedirection();
-
-            //app.UseAuthorization();
+            //Add cors as middleware for cross domain requests
             app.UseCors(MyAllowSpecificOrigins);
+
+            //Add middleware for request rounting
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
+                //Add endpoints for controller actions
                 endpoints.MapControllers();
             });
         }
